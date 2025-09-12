@@ -1,0 +1,64 @@
+basic:
+  exp_name: 8006_RaceAll_B_AdaLN_Official_modified
+  results_dir: exps
+  data_path: /pub_datasets/ILSVRC/Data/CLS-LOC/train
+
+  global_seed: 1234
+  epochs: 1000 
+  log_every: 100
+  ckpt_every: 50000
+  rf: True
+  rf_ori: False
+  discrete: False
+
+  accum_iter: 1
+  clip_grad_norm:    # set None to disable
+
+  image_size: 256
+  global_batch_size: 256
+  num_workers: 8
+
+  timestep_start: 0 
+  timestep_end: 1000
+
+  vae_path: stabilityai/sd-vae-ft-mse
+
+  dataset_config:
+    target: dataset.imagene1K_latent_mse_256.LatentDataset
+    params:
+      latent_dir: /m2v_intern/yuanziyang/data/train
+      class_to_idx: class_to_idx.json
+
+model:
+  ckpt:
+  target: models.models_RaceAll_official_modified.DiT
+  params:
+    input_size: 32
+    num_classes: 1000
+    patch_size: 2
+    depth: 12
+    hidden_size: 768
+    num_heads: 12
+    mlp_ratio: 4
+    use_swiglu: false
+    MoE_config:
+      n_shared_experts: 0
+      num_experts: 16
+      capacity: 1
+      init_MoeMLP: false
+      interleave: true
+      router_mode: glbl
+    CapacityPred_loss_weight: 1
+
+optim:
+  base_learning_rate: 0.0001
+  weight_decay: 0
+  betas: [0.9, 0.999]
+
+
+lr_sheduler:
+  warmup:
+  train_epoch:
+
+
+

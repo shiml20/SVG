@@ -1,0 +1,7 @@
+VAE shape: (1, 4, 32, 32), DINO shape: (1, 384, 16, 16)
+VAE token stats: mean_norm=10.224319, var_norm=9.714472
+DINO token stats: mean_norm=8.216433, var_norm=0.158061
+Pearson(norm) VAE vs DINO_up: r=0.118323, p=1.476138e-04
+Token-wise cosine sim (proj 4D): mean=0.007902, std=0.530265
+PCA cumvar samples: VAE first 10 cumvar: 0.5182,0.7955,0.9184,1.0000
+PCA cumvar samples: DINO first 10 cumvar: 0.2358,0.3943,0.5089,0.5760,0.6146,0.6447,0.6713,0.6961,0.7175,0.7380
