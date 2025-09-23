@@ -26,7 +26,8 @@ dist/
 **/*.ckpt        # 检查点文件
 **/*.pb        
 **/*.pth
-*pt
+hidden_states_vae/*.pt
+
 
 # 所有子目录中的媒体文件（递归匹配）
 **/*.png
