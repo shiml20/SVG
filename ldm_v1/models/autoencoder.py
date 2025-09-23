@@ -298,7 +298,7 @@ class AutoencoderKL(pl.LightningModule):
                  ):
         super().__init__()
         self.image_key = image_key
-        self.encoder = Encoder(**ddconfig)
+        self.encoder = Encoder(**ddconfig).eval()
         self.decoder = Decoder(**ddconfig)
 
         self.loss = instantiate_from_config(lossconfig)
@@ -340,7 +340,9 @@ class AutoencoderKL(pl.LightningModule):
         print(f"Restored from {path}")
 
     def encode(self, x):
+        print(f'x.requires_grad: {x.requires_grad}')
         h = self.encoder(x)
+        print(f'h.requires_grad after encoder: {h.requires_grad}')
         moments = self.quant_conv(h)
         posterior = DiagonalGaussianDistribution(moments)
         return posterior
@@ -425,7 +427,8 @@ class AutoencoderKL(pl.LightningModule):
 
     def configure_optimizers(self):
         lr = self.learning_rate
-        params = (list(self.encoder.parameters()) +
+        params = (
+                # list(self.encoder.parameters()) +
                  list(self.decoder.parameters()) +
                  list(self.quant_conv.parameters()) +
                  list(self.post_quant_conv.parameters()))

@@ -434,12 +434,13 @@ class Encoder(nn.Module):
     def forward(self, x):
         # timestep embedding
         temb = None
-
+        print(f'x.requires_grad: {x.requires_grad}')
         # downsampling
         hs = [self.conv_in(x)]
         for i_level in range(self.num_resolutions):
             for i_block in range(self.num_res_blocks):
                 h = self.down[i_level].block[i_block](hs[-1], temb)
+                print(f'h.requires_grad after resblock: {h.requires_grad}')
                 if len(self.down[i_level].attn) > 0:
                     h = self.down[i_level].attn[i_block](h)
                 hs.append(h)
@@ -538,10 +539,11 @@ class Decoder(nn.Module):
 
         # timestep embedding
         temb = None
-
+        # print(f'z.requires_grad: {z.requires_grad}')
         # z to block_in
+        # print(f'z.requires_grad before conv_in: {z.requires_grad}')
         h = self.conv_in(z)
-
+        # print(f'h.requires_grad after conv_in: {h.requires_grad}')
         # middle
         h = self.mid.block_1(h, temb)
         h = self.mid.attn_1(h)
@@ -563,6 +565,7 @@ class Decoder(nn.Module):
         h = self.norm_out(h)
         h = nonlinearity(h)
         h = self.conv_out(h)
+        # print(f'h.requires_grad: {h.requires_grad}')
         if self.tanh_out:
             h = torch.tanh(h)
         return h

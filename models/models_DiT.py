@@ -328,14 +328,29 @@ class DiT(nn.Module):
         y: (N,) tensor of class labels
         """
         # import ipdb; ipdb.set_trace()
+        N, C, H, W = x.shape
+        # if H != 16:
+            # pos_embed = get_resized_sincos_pos_embed(self.pos_embed, 32)
+            # self.pos_embed = nn.Parameter(torch.zeros(1, self.num_patches, hidden_size), requires_grad=False)
+            # self.pos_embed.data.copy_(pos_embed.to(x))
+            # pos_embed = interpolate_pos_embed(self.pos_embed, (32, 32))
+            # x = self.x_embedder(x) + pos_embed.to(x)
+        # else:
+
+
+        _t = t[0]
+        _y = y[0]
+
+
         x = self.x_embedder(x) + self.pos_embed  # (N, T, D), where T = H * W / patch_size ** 2
         t = self.t_embedder(t)                   # (N, D)
         y = self.y_embedder(y, self.training)    # (N, D)
         c = t + y                                # (N, D)
         # import pdb; pdb.set_trace()
         
-        for block in self.blocks:
+        for idx, block in enumerate(self.blocks):
             x = block(x, c)                      # (N, T, D)
+            # torch.save(x, f"/ytech_m2v3_hdd/yuanziyang/sml/FVG/hidden_states_vae/t{_t:.2f}_c{_y}_layer{idx}.pt")
 
         x = self.final_layer(x, c)                # (N, T, patch_size ** 2 * out_channels)
         x = self.unpatchify(x)                   # (N, out_channels, H, W)

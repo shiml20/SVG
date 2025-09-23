@@ -52,7 +52,10 @@ class FIDStatistics:
 
         tr_covmean = np.trace(covmean)
 
-        return diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean
+        first_term = diff.dot(diff)
+        second_term = np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean
+
+        return  first_term + second_term, first_term, second_term
     
 def read_statistics(npz_path: str):
     obj = np.load(npz_path)
@@ -72,6 +75,6 @@ if __name__ == '__main__':
     ref_stats = read_statistics(args.ref_npz)
     sample_stats = read_statistics(args.sample_npz)
     
-    fid = sample_stats.frechet_distance(ref_stats)
-    print("FID: ", fid)
+    fid, first_term, second_term = sample_stats.frechet_distance(ref_stats)
+    print("FID: ", fid,  "mu:", first_term, "cov", second_term)
 

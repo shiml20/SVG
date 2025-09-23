@@ -179,7 +179,8 @@ def main(args):
     vae_name = args.vae.split("-")[-1]
     folder_name = f"{args.tag}_{model_string_name}-{ckpt_string_name}-size-{args.image_size}-vae-{vae_name}-" \
                   f"cfg-{args.cfg_scale}-seed-{args.global_seed}-FID-{int(args.num_fid_samples/1000)}K-bs{args.per_proc_batch_size}-sampling_{args.num_sampling_steps}-{args.shift}ema"
-    sample_folder_dir = f"{args.sample_dir}/{folder_name}"
+    sample_folder_dir = f"{args.sample_dir}/npy/{folder_name}"
+
     if rank == 0:
         os.makedirs(sample_folder_dir, exist_ok=True)
         print(f"Saving .png samples at {sample_folder_dir}")
@@ -327,6 +328,7 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt", type=str, default=None,
                         help="Optional path to a DiT checkpoint (default: auto-download a pre-trained DiT-XL/2 model).")
     parser.add_argument("--tag",  type=str, default="")
+    parser.add_argument("--cfg_mode",  type=str, default="")
 
 
     args = parser.parse_args()

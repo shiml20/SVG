@@ -125,6 +125,11 @@ def main(config):
         logger.info(f"Training Diffusion among Timestep begin at: {timestep_start}, end at: {timestep_end}")
 
 
+    latents_stats = torch.load("/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/configs/vavae_ckpt/latents_stats.pt")
+    latent_mean = latents_stats["mean"].to(device)
+    latent_std = latents_stats["std"].to(device)
+    latent_multiplier = 1.0
+
     # Variables for monitoring/logging purposes:
     global_step = 0
     train_steps = 0
@@ -146,9 +151,13 @@ def main(config):
             y = y.to(device)
             if not use_latent:
                 with torch.no_grad():
-                    # import ipdb; ipdb.set_trace()
+                    import ipdb; ipdb.set_trace()
                     # x = vae.encode(x).sample().to(torch.float32)
                     x = vae.encode(x).sample()
+
+                    if config.basic.feature_norm:
+                        x = (x - latent_mean) / latent_std
+
                     # x = vae.encode(x).latent_dist.sample().mul_(0.18215)
 
             if config.basic.rf:

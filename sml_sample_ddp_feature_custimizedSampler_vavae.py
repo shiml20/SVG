@@ -180,6 +180,10 @@ def main(args):
     # 使用
     vae = VA_VAE("/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/vavae/configs/f16d32_vfdinov2.yaml").load().model
 
+    latents_stats = torch.load("/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/configs/vavae_ckpt/latents_stats.pt")
+    latent_mean = latents_stats["mean"].to(device)
+    latent_std = latents_stats["std"].to(device)
+    latent_multiplier = 1.0
 
     assert args.cfg_scale >= 1.0, "In almost all cases, cfg_scale be >= 1.0"
     using_cfg = args.cfg_scale > 1.0
@@ -192,7 +196,7 @@ def main(args):
     vae_name = args.vae.split("-")[-1]
     folder_name = f"{args.tag}_{model_string_name}-{ckpt_string_name}-size-{args.image_size}-vae-{vae_name}-" \
                   f"cfg-{args.cfg_scale}-seed-{args.global_seed}-FID-{int(args.num_fid_samples/1000)}K-bs{args.per_proc_batch_size}-sampling_{args.num_sampling_steps}-shift{args.shift}-ema"
-    sample_folder_dir = f"{args.sample_dir}/{folder_name}"
+    sample_folder_dir = f"{args.sample_dir}/npy/{folder_name}"
     if rank == 0:
         os.makedirs(sample_folder_dir, exist_ok=True)
         print(f"Saving .png samples at {sample_folder_dir}")
@@ -226,7 +230,7 @@ def main(args):
             y_null = torch.tensor([1000] * n, device=device)
             y_cat = torch.cat([y, y_null], 0)
             model_kwargs = dict(y=y_cat, cfg_scale=args.cfg_scale)  
-          
+
             if not isinstance(model, Dict):
                 sample_fn = model.forward_with_cfg  
             else:
@@ -250,7 +254,8 @@ def main(args):
         if config.basic.rf:
             # Sample images:
             samples = diffusion.sample(z, y, y_null, sample_steps=args.num_sampling_steps, 
-            cfg=args.cfg_scale, progress=False, mode=args.tag, timestep_shift=args.shift)
+            cfg=args.cfg_scale, progress=False, mode=args.tag, timestep_shift=args.shift)[-1]
+            samples = (samples * latent_std) + latent_mean 
 
             # samples = diffusion.sample(
                 # z, y, y_null, sample_steps=args.num_sampling_steps, cfg=args.cfg_scale, progress=False, mode=args.tag
@@ -260,7 +265,7 @@ def main(args):
             # samples = vae.decode(samples[-1] / 0.18215).sample
 
             with torch.no_grad():
-                samples = vae.decode(samples[-1])
+                samples = vae.decode(samples)
 
         else:
             diffusion = create_diffusion(str(args.num_sampling_steps))  # default: 1000 steps, linear noise schedule
@@ -332,6 +337,7 @@ if __name__ == "__main__":
     parser.add_argument("--vae",  type=str, default="stabilityai/sd-vae-ft-mse")
     
     parser.add_argument("--sample-dir", type=str, default="/ytech_m2v2_hdd/yuanziyang/projects/VGI-Interns/analysis_t2v/DiT-MoE-Project/yzy_samples")
+    parser.add_argument("--cfg_mode", type=str, default="/ytech_m2v2_hdd/yuanziyang/projects/VGI-Interns/analysis_t2v/DiT-MoE-Project/yzy_samples")
     parser.add_argument("--per-proc-batch-size", type=int, default=32)
     parser.add_argument("--num-fid-samples", type=int, default=50_000)
     parser.add_argument("--image-size", type=int, choices=[256, 512], default=256)

@@ -226,6 +226,67 @@ class FinalLayer(nn.Module):
         x = self.linear(x)
         return x
 
+def interpolate_pos_embed(pos_embed, target_shape):
+    """
+    对位置编码进行插值，从原始形状扩展到目标形状
+    
+    Args:
+        pos_embed: (1, num_patches, hidden_size) 位置编码张量
+        target_shape: (target_height, target_width) 目标token网格形状
+    
+    Returns:
+        interpolated_pos_embed: 插值后的位置编码
+    """
+    # 获取原始形状信息
+    batch_size, num_patches, hidden_size = pos_embed.shape
+    original_size = int(num_patches ** 0.5)  # 假设是正方形网格
+    
+    # 将位置编码重塑为2D网格格式 (1, H, W, D)
+    pos_embed_2d = pos_embed.view(1, original_size, original_size, hidden_size)
+    
+    # 使用双线性插值进行上采样
+    # 需要将通道维度移到前面 (1, D, H, W)
+    pos_embed_2d = pos_embed_2d.permute(0, 3, 1, 2)
+    
+    # 进行插值
+    interpolated = F.interpolate(
+        pos_embed_2d,
+        size=target_shape,
+        mode='bicubic',  # 或者使用 'bilinear'
+        align_corners=False
+    )
+    
+    # 将通道维度移回最后 (1, H, W, D)
+    interpolated = interpolated.permute(0, 2, 3, 1)
+    
+    # 展平为序列格式 (1, H*W, D)
+    interpolated_pos_embed = interpolated.reshape(1, -1, hidden_size)
+    
+    return interpolated_pos_embed
+
+# 或者使用更精确的sin-cos位置编码重新计算
+def get_resized_sincos_pos_embed(original_pos_embed, target_shape):
+    """
+    使用sin-cos函数重新计算目标形状的位置编码
+    
+    Args:
+        original_pos_embed: 原始位置编码，用于获取hidden_size
+        target_shape: (target_height, target_width) 目标token网格形状
+    
+    Returns:
+        resized_pos_embed: 重新计算的位置编码
+    """
+    hidden_size = original_pos_embed.shape[-1]
+    
+    # 重新计算目标形状的sin-cos位置编码
+    pos_embed = get_2d_sincos_pos_embed(
+        hidden_size, 
+        grid_size=target_shape,  # 假设你的函数支持指定网格形状
+        cls_token=False
+    )
+    
+    return torch.from_numpy(pos_embed).float().unsqueeze(0)
+
 
 class DiT(nn.Module):
     """
@@ -259,7 +320,6 @@ class DiT(nn.Module):
         self.y_embedder = LabelEmbedder(num_classes, hidden_size, class_dropout_prob)
         # self.num_patches = self.x_embedder.num_patches
         self.num_patches = 256
-
         # Will use fixed sin-cos embedding:
         self.pos_embed = nn.Parameter(torch.zeros(1, self.num_patches, hidden_size), requires_grad=False)
 
@@ -326,7 +386,7 @@ class DiT(nn.Module):
         imgs = x.reshape(shape=(x.shape[0], c, h * p, h * p))
         return imgs
 
-    def forward(self, x, t, y):
+    def forward(self, x, t, y, skip=[]):
         """
         Forward pass of DiT.
         x: (N, C, H, W) tensor of spatial inputs (images or latent representations of images)
@@ -335,17 +395,34 @@ class DiT(nn.Module):
         """
         N, T, D = x.shape
         x = self.ln1(x)
-        x = x + self.pos_embed  # (N, T, D), where T = H * W / patch_size ** 2
+        # import pdb; pdb.set_trace()
+
+        _t = t[0]
+        _y = y[0]
+
+        if T != 16*16:
+            pos_embed = get_resized_sincos_pos_embed(self.pos_embed, 32)
+            # self.pos_embed = nn.Parameter(torch.zeros(1, self.num_patches, hidden_size), requires_grad=False)
+            # self.pos_embed.data.copy_(pos_embed.to(x))
+            pos_embed = interpolate_pos_embed(self.pos_embed, (32, 32))
+            x = x + pos_embed.to(x)
+        else:
+            x = x + self.pos_embed  # (N, T, D), where T = H * W / patch_size ** 2
         # x = x.permute(0, 2, 1).contiguous().view(N, D, int(T**0.5), int(T**0.5))
         # import ipdb; ipdb.set_trace()
         # x = self.x_embedder(x) + self.pos_embed  # (N, T, D), where T = H * W / patch_size ** 2
         t = self.t_embedder(t)                   # (N, D)
         y = self.y_embedder(y, self.training)    # (N, D)
-        c = t + y                                # (N, D)
-        # import pdb; pdb.set_trace()
         
-        for block in self.blocks:
+        # y = y + torch.randn_like(y) * 0.1
+
+        c = t + y                                # (N, D)
+        
+        for idx, block in enumerate(self.blocks):
+            if idx in skip:
+                continue
             x = block(x, c)                      # (N, T, D)
+            # torch.save(x, f"/ytech_m2v3_hdd/yuanziyang/sml/FVG/hidden_states/t{_t:.2f}_c{_y}_layer{idx}.pt")
         
         x = self.final_layer(x, c)                # (N, T, patch_size ** 2 * out_channels)
         # x = self.ln2(x)

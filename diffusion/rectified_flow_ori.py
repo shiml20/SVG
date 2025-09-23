@@ -6,6 +6,60 @@ from torchdiffeq import odeint
 
 import os
 
+def compute_tm(t_n, shift):
+    if shift <= 0:
+        return t_n
+    numerator = shift * t_n
+    denominator = 1 + (shift - 1) * t_n
+    return numerator / denominator
+
+def apply_shift(t, timestep_shift=1.0):
+    return compute_tm(t, timestep_shift)
+
+def mean_flat(x):
+    """
+    Take the mean over all non-batch dimensions.
+    """
+    return torch.mean(x, dim=list(range(1, len(x.size()))))
+
+def expand_t_like_x(t, x):
+    """Function to reshape time t to broadcastable dimension of x
+    Args:
+      t: [batch_dim,], time vector
+      x: [batch_dim,...], data point
+    """
+    dims = [1] * (len(x.size()) - 1)
+    t = t.view(t.size(0), *dims)
+    return t
+
+
+def prepare_t_seq(sample_steps, device, timestep_shift=1.0, 
+                  custom_t_seq: torch.Tensor = None):
+    """
+    Args:
+        sample_steps (int): 采样步数
+        device (torch.device)
+        timestep_shift (float): shift 参数（仅在没有自定义序列时用）
+        custom_t_seq (torch.Tensor): 直接传入自定义时间点 [0,1] 区间张量，长度必须是 sample_steps+1
+    """
+    if custom_t_seq is not None:
+        # 确保在 device 上 & 长度正确
+        t_seq = custom_t_seq.to(device)
+        assert len(t_seq) == sample_steps + 1, \
+            f"custom_t_seq 长度必须是 sample_steps+1 ({sample_steps+1}), 但现在是 {len(t_seq)}"
+    else:
+        # 默认: linear + shift
+        base = torch.linspace(0, 1, sample_steps + 1, device=device)
+        t_seq = torch.tensor(
+            [apply_shift(t.item(), timestep_shift) for t in base],
+            device=device
+        )
+
+    # Δt 序列
+    dt_seq = t_seq[1:] - t_seq[:-1]
+    return t_seq, dt_seq.view(sample_steps, *([1] * (1)))  # 按需 reshape
+
+
 class RectifiedFlow(torch.nn.Module):
     def __init__(self, model, ln=False):
         super().__init__()
@@ -17,96 +71,79 @@ class RectifiedFlow(torch.nn.Module):
         else:
             self.learn_sigma = model.learn_sigma 
 
-    def forward(self, x, cond):
 
+    def forward(self, x, cond, timestep_shift=0.1):
         b = x.size(0)
-        # import pdb; pdb.set_trace()
-       
+
         z1 = x
         z0 = torch.randn_like(x)
-        t = torch.rand((b,)).to(x.device)
+        t = torch.rand((b,), device=x.device)
+
+        # --- apply timestep shift ---
+        t = apply_shift(t, timestep_shift)
+
+        # t = torch.zeros_like(t)
+        ratio_max = 0.0
         texp = t.view([b, *([1] * len(x.shape[1:]))])
-        ut = z1 - z0
-
-        # 0 is noise 1 is data
+        # ratio depends on t (linearly)
+        ratio = ratio_max * texp   # shape: [b, 1, 1, ...] broadcast with z0
+        ut = z1 - z0 + ratio * torch.randn_like(z0)
         zt = (1 - texp) * z0 + texp * z1
-
-        # make t, zt into same dtype as x
+        
+        # import ipdb; ipdb.set_trace()
+        
         zt, t = zt.to(x.dtype), t.to(x.dtype)
+        model_output = self.model(zt, t, cond)
 
-        model_output = self.model(zt, t, cond, ) 
+
+
+    # def forward(self, x, cond):
+    #     b = x.size(0)
+    #     # import pdb; pdb.set_trace()
+    #     z1 = x
+    #     z0 = torch.randn_like(x)
+    #     t = torch.rand((b,)).to(x.device)
+    #     texp = t.view([b, *([1] * len(x.shape[1:]))])
+    #     ut = z1 - z0
+
+    #     # 0 is noise 1 is data
+    #     zt = (1 - texp) * z0 + texp * z1
+
+    #     # make t, zt into same dtype as x
+    #     zt, t = zt.to(x.dtype), t.to(x.dtype)
+
+    #     model_output = self.model(zt, t, cond, ) 
 
         terms = {}
         terms["loss"] = 0
 
-        if isinstance(model_output, tuple):
-            print('here')
-            # terms["total_aux_loss"] = sum(model_output[1])
-            # terms["balance_loss"] = sum(model_output[2])
-            # terms["router_z_loss"] = sum(model_output[3])
+        # if self.learn_sigma == True: 
+            # model_output, _ = model_output.chunk(2, dim=1) 
 
-            loss_stratgy_name = model_output[1]
-            # print(loss_stratgy_name)
-            if loss_stratgy_name == "router_distill":
-                affinity_list, index_list, sparse_loss_weight = model_output[2:]
-                for i, (affinity, index) in enumerate(zip(affinity_list, index_list)):
-                    mask = th.zeros_like(affinity)
-                    mask.scatter_(-1, index, 1)
-                    terms[f"sparse_loss_{i}"] = mean_flat(th.abs(affinity-mask)).mean()
-                    terms["loss"] +=  mean_flat(th.abs(affinity-mask)) * sparse_loss_weight
-            
-            elif loss_stratgy_name == "Capacity_Pred":
-                terms["cp_loss"] = 0
-                layer_idx_list, ones_list, pred_c_list, CapacityPred_loss_weight = model_output[2:]
-                for layer_idx, ones, pred_c in zip(layer_idx_list, ones_list, pred_c_list):
-                    # ones = ones.view(-1,1)
-                    # pred_c = pred_c.view(-1, 1)
-                    terms[f"Capacity_Pred_loss_{layer_idx}"] = nn.BCEWithLogitsLoss()(pred_c, ones)
-                    terms["loss"] +=  terms[f"Capacity_Pred_loss_{layer_idx}"]  * CapacityPred_loss_weight
-                    terms["cp_loss"] += terms[f"Capacity_Pred_loss_{layer_idx}"]  * CapacityPred_loss_weight
+        # import ipdb; ipdb.set_trace()
+        if model_output.shape[2] != x.shape[2]:
+            # model_output, _ = model_output.chunk(2, dim=1)
+            model_output, _ = model_output.chunk(2, dim=2)
+            # model_output_offset, _ = model_output_offset.chunk(2, dim=1)
 
-            elif loss_stratgy_name == "dynamic_moe":
-                layer_idx_list, balance_loss_list, dynamic_loss_list, balance_loss_weight, dynamic_loss_weight = model_output[2:]
-                for layer_idx, balance_loss, dynamic_loss in zip(layer_idx_list, balance_loss_list, dynamic_loss_list):
-                    terms[f"balance_loss_{layer_idx}"] = balance_loss 
-                    terms["loss"] +=  terms[f"balance_loss_{layer_idx}"] * balance_loss_weight
-                    terms[f"dynamic_loss_{layer_idx}"] = dynamic_loss 
-                    terms["loss"] +=  terms[f"dynamic_loss_{layer_idx}"] * dynamic_loss_weight
-            elif loss_stratgy_name == "MovingThreshold":
-                layer_idx_list, balance_loss_list, balance_loss_weight, real_capacity_list = model_output[2:]
-                # for layer_idx, balance_loss, real_capacity in zip(layer_idx_list, balance_loss_list, real_capacity_list):
-                    # terms[f"balance_loss_{layer_idx}"] = balance_loss 
-                    # terms["loss"] +=  terms[f"balance_loss_{layer_idx}"] * balance_loss_weight
-                    # terms[f"real_capacity_{layer_idx}"] = real_capacity 
-            elif loss_stratgy_name == "MovingThreshold_wLBL":
-                layer_idx_list, balance_loss_list, balance_loss_weight, real_capacity_list = model_output[2:]
-                for layer_idx, balance_loss, real_capacity in zip(layer_idx_list, balance_loss_list, real_capacity_list):
-                    terms[f"balance_loss_{layer_idx}"] = balance_loss 
-                    terms["loss"] +=  terms[f"balance_loss_{layer_idx}"] * balance_loss_weight
-                    terms[f"real_capacity_{layer_idx}"] = real_capacity 
-            else:
-                raise Exception("not defined training loss")
+        batchwise_mse = mean_flat(((model_output - ut) ** 2))
 
-            model_output = model_output[0]
-
-
-        if self.learn_sigma == True: 
-            model_output, _ = model_output.chunk(2, dim=1) 
-        batchwise_mse = torch.mean(((model_output - ut) ** 2), dim=list(range(1, len(x.shape))))
-
-        tlist = batchwise_mse.detach().cpu().reshape(-1).tolist()
-        ttloss = [(tv, tloss) for tv, tloss in zip(t, tlist)]
+        # batchwise_mse_offset = mean_flat(((model_output_offset - (ut - model_output)) ** 2))
+        # model_output_offset = mean_flat(((model_output_offset)))
 
         terms["mse"] = batchwise_mse
+        # terms["offset"] = batchwise_mse_offset
+        # terms["model_output_offset"] = model_output_offset
 
         if "vb" in terms:
             terms["loss"] += terms["mse"].mean() + terms["vb"].mean()
+            # terms["loss"] += terms["offset"].mean()
         else:
             terms["loss"] += terms["mse"].mean()
+            # terms["loss"] += terms["offset"].mean()
 
-        # import pdb; pdb.set_trace()
+        return terms
 
-        return terms, {"batchwise_loss": ttloss}
 
 
     @torch.no_grad()
@@ -231,28 +268,37 @@ class RectifiedFlow(torch.nn.Module):
         b = z.size(0)
         device = z.device
         images = [z]
+        cfg_ori = cfg
 
-        # --- timestep shift helper ---
-        def compute_tm(t_n, shift):
-            if shift <= 0:
-                return t_n
-            numerator = shift * t_n
-            denominator = 1 + (shift - 1) * t_n
-            return numerator / denominator
 
-        def apply_shift(t):
-            return compute_tm(t, timestep_shift)
+        # # --- prepare all timesteps ---
+        # # 用 sample_steps+1，这样保证 i 和 i+1 都有
+        # t_seq = torch.linspace(0, 1, sample_steps + 1, device=device)
+        # t_seq = torch.tensor([apply_shift(t.item(), timestep_shift) for t in t_seq], device=device)
+        # print(t_seq)
 
-        # --- prepare all timesteps ---
-        # 用 sample_steps+1，这样保证 i 和 i+1 都有
-        t_seq = torch.linspace(0, 1, sample_steps + 1, device=device)
-        t_seq = torch.tensor([apply_shift(t.item()) for t in t_seq], device=device)
-        print(t_seq)
+        # # 每个 step 的 Δt = t[i+1] - t[i]，这样支持 shift 后的非均匀步长
+        # dt_seq = t_seq[1:] - t_seq[:-1]
+        # dt_seq = dt_seq.view(sample_steps, *([1] * (z.ndim - 1)))  # broadcast 形状匹配 z
+
+
+        # 1. 默认 (linear+shift)
+        t_seq, dt_seq = prepare_t_seq(sample_steps=sample_steps, device="cuda", timestep_shift=timestep_shift)
+
+        
+
+        # 2. 手动指定 t_seq（非均匀）
+        # manual_t_seq = torch.tensor([0.0000, 0.0040, 0.0081, 0.0122, 0.0164, 0.0206, 0.0249, 0.0292, 0.0336,
+        # 0.0381, 0.0426, 0.0471, 0.0517, 0.0564, 0.0611, 0.0659, 0.0708, 0.0757,
+        # 0.0807, 0.0858, 0.0909, 0.0961, 1.0000])  # len=sample_steps+1
+        # sample_steps = len(manual_t_seq) - 1
+        # t_seq, dt_seq = prepare_t_seq(sample_steps=sample_steps, device="cuda", custom_t_seq=manual_t_seq)
+
+        print("t_seq:", t_seq)
+        print("dt_seq:", dt_seq.squeeze())
         loop_range = tqdm(range(sample_steps), desc="Sampling") if progress else range(sample_steps)
 
-        # 每个 step 的 Δt = t[i+1] - t[i]，这样支持 shift 后的非均匀步长
-        dt_seq = t_seq[1:] - t_seq[:-1]
-        dt_seq = dt_seq.view(sample_steps, *([1] * (z.ndim - 1)))  # broadcast 形状匹配 z
+
 
         # --- base functions ---
         def fn(z, t, cond):
@@ -266,7 +312,17 @@ class RectifiedFlow(torch.nn.Module):
             return vc
 
         def fn_v(z, t):
+            # print(t)
             vc = fn(z, t, cond)
+            # vc = 1.2 * vc
+            vc = 1 * vc
+
+            if t[0] < 0.0:
+                pass
+                cfg = 1
+            else:
+                cfg = cfg_ori
+                
             if null_cond is not None:
                 vu = fn(z, t, null_cond)
                 # channels_num = 3
@@ -275,6 +331,11 @@ class RectifiedFlow(torch.nn.Module):
                 # channels_num = 3
                 # print(model_out.shape)
                 vc = vu + cfg * (vc - vu)
+
+            # if t[0] < 1:
+            # if t[0] > 0.02 and t[0] < 0.8:
+                # vc = vu
+
             return vc
 
         def _fn(t, z):
@@ -320,6 +381,8 @@ class RectifiedFlow(torch.nn.Module):
                 os.environ["cur_step"] = f"{i:003d}"
                 if 'euler' in mode:
                     z = euler_step(z, i)
+                    # print(( 1 - (i + 1) / len(loop_range)))
+                    # z = z + torch.randn_like(z) * 0.1 * ( 1 - (i + 1) / len(loop_range))
                 elif 'heun' in mode:
                     z = heun_step(z, i)
                 else:

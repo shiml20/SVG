@@ -126,7 +126,7 @@ class ImageNetBase(Dataset):
         }
 
         if self.process_images:
-            self.size = retrieve(self.config, "size", default=256)
+            # self.size = retrieve(self.config, "size", default=256)
             self.data = ImagePaths(self.abspaths,
                                    labels=labels,
                                    size=self.size,
@@ -147,9 +147,10 @@ class ImageNetTrain(ImageNetBase):
         147897477120,
     ]
 
-    def __init__(self, process_images=True, data_root=None, **kwargs):
+    def __init__(self, process_images=True, data_root=None, size=256, **kwargs):
         self.process_images = process_images
         self.data_root = data_root
+        self.size = size
         super().__init__(**kwargs)
 
     # def _prepare(self):
@@ -236,9 +237,10 @@ class ImageNetValidation(ImageNetBase):
         1950000,
     ]
 
-    def __init__(self, process_images=True, data_root=None, **kwargs):
+    def __init__(self, process_images=True, data_root=None, size=256, **kwargs):
         self.data_root = data_root
         self.process_images = process_images
+        self.size = size
         super().__init__(**kwargs)
 
     # def _prepare(self):

@@ -11,6 +11,9 @@ from ldm.util import instantiate_from_config
 from torchvision.models.vision_transformer import VisionTransformer
 import torch.nn as nn
 
+
+
+
 def create_small_vit_s(output_dim=8, patch_size=16, img_size=256):
     """
     创建小型ViT-S模型

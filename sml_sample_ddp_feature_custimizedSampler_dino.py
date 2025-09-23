@@ -181,7 +181,7 @@ def main(args):
         },
         "dinov3_vitsp16": {
             "z_channels": 384,
-            "weight_path": "/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/vavae/logs/f16d32_ldm_dinov3_vitsp/checkpoints/epoch=000029.ckpt",
+            "weight_path": "/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/vavae/logs/f16d32_ldm_dinov3_vitsp/checkpoints/epoch=000040.ckpt",
         },
     }
 
@@ -211,6 +211,11 @@ def main(args):
     decoder = load_decoder(config_dict[encoder_type]["weight_path"])
 
 
+    dinov3_sp_stats = torch.load("dinov3_sp_stats.pt")
+    dinov3_sp_mean = dinov3_sp_stats["dinov3_sp_mean"].to(device)[:,:,:z_channels]
+    dinov3_sp_std = dinov3_sp_stats["dinov3_sp_std"].to(device)[:,:,:z_channels]
+
+
 
     assert args.cfg_scale >= 1.0, "In almost all cases, cfg_scale be >= 1.0"
     using_cfg = args.cfg_scale > 1.0
@@ -221,9 +226,9 @@ def main(args):
     # model_string_name = args.model.replace("/", "-")
 
     vae_name = args.vae.split("-")[-1]
-    folder_name = f"{args.tag}_{model_string_name}-{ckpt_string_name}-size-{args.image_size}-vae-{vae_name}-" \
+    folder_name = f"{args.tag}_{model_string_name}-{ckpt_string_name}-size-{args.image_size}-" \
                   f"cfg-{args.cfg_scale}-seed-{args.global_seed}-FID-{int(args.num_fid_samples/1000)}K-bs{args.per_proc_batch_size}-sampling_{args.num_sampling_steps}-shift{args.shift}-ema"
-    sample_folder_dir = f"{args.sample_dir}/{folder_name}"
+    sample_folder_dir = f"{args.sample_dir}/npy/{folder_name}"
     if rank == 0:
         os.makedirs(sample_folder_dir, exist_ok=True)
         print(f"Saving .png samples at {sample_folder_dir}")
@@ -281,7 +286,10 @@ def main(args):
         if config.basic.rf:
             # Sample images:
             samples = diffusion.sample(z, y, y_null, sample_steps=args.num_sampling_steps, 
-            cfg=args.cfg_scale, progress=False, mode=args.tag, timestep_shift=args.shift)
+            cfg=args.cfg_scale, progress=False, mode=args.tag, timestep_shift=args.shift)[-1]
+
+            if config.basic.get("feature_norm", False):
+                samples = samples * dinov3_sp_std + dinov3_sp_mean
 
             # samples = diffusion.sample(
                 # z, y, y_null, sample_steps=args.num_sampling_steps, cfg=args.cfg_scale, progress=False, mode=args.tag
@@ -290,8 +298,8 @@ def main(args):
             # samples, _ = samples.chunk(2, dim=0)  # Remove null class samples
             # samples = vae.decode(samples[-1] / 0.18215).sample
 
-            B, T, D = samples[-1].shape
-            samples_dino_feature = samples[-1].permute(0, 2, 1).reshape(B, D, 16, 16)
+            B, T, D = samples.shape
+            samples_dino_feature = samples.permute(0, 2, 1).reshape(B, D, 16, 16)
             samples = decoder(samples_dino_feature)
 
 

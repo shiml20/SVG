@@ -1,0 +1,61 @@
+basic:
+  exp_name: E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load900K
+  results_dir: exps
+  data_path: /m2v_intern/public_datasets/ImageNet-1k/data/train_images
+
+  global_seed: 1234
+  epochs: 1000 
+  log_every: 100
+  ckpt_every: 50000
+  rf: True
+  rf_ori: False
+  shift: 0.4
+
+  accum_iter: 1
+  clip_grad_norm:    # set None to disable
+
+  image_size: 256
+  global_batch_size: 256
+  num_workers: 16
+
+  timestep_start: 0 
+  timestep_end: 1000
+  encoder: dinov3_vitsp16
+  feature_norm: true
+
+  vae_path: stabilityai/sd-vae-ft-mse
+  use_latent: false
+  # dataset_config:
+    # target: dataset.dataset_mar_cache.CachedFolder
+    # params:
+      # root: /ytech_m2v3_hdd/yuanziyang/sml/imagenet_dino_normal_vitsp
+  encoder_config: /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/f16d32_ldm_dinov3_vitsp_plus_mask01_norm_epoch40.yaml
+
+model:
+  ckpt: /ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0180-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm-GPU8/checkpoints/0900000.pt
+  target: models.models_DiT_dino_v3.DiT
+  params:
+    input_size: 16
+    num_classes: 1000
+    patch_size: 1
+    depth: 28
+    hidden_size: 1152
+    num_heads: 16
+    mlp_ratio: 4
+    use_swiglu: false
+    in_channels: 392
+    qk_norm: True
+    class_dropout_prob: 0.1
+
+optim:
+  base_learning_rate: 0.0001
+  weight_decay: 0
+  betas: [0.9, 0.999]
+
+
+lr_sheduler:
+  warmup:
+  train_epoch:
+
+
+

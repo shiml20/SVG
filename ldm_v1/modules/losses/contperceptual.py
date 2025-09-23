@@ -42,6 +42,8 @@ class LPIPSWithDiscriminator(nn.Module):
 
     def calculate_adaptive_weight(self, nll_loss, g_loss, last_layer=None):
         if last_layer is not None:
+            print("nll_loss.requires_grad:", nll_loss.requires_grad)
+            print("last_layer.requires_grad:", last_layer.requires_grad)
             nll_grads = torch.autograd.grad(nll_loss, last_layer, retain_graph=True)[0]
             g_grads = torch.autograd.grad(g_loss, last_layer, retain_graph=True)[0]
         else:
@@ -70,6 +72,8 @@ class LPIPSWithDiscriminator(nn.Module):
                 global_step, last_layer=None, cond=None, split="train",
                 weights=None, z=None, aux_feature=None, enc_last_layer=None):
         if not self.pp_style:
+            print(f'inputs.requires_grad: {inputs.requires_grad}')
+            print(f'reconstructions.requires_grad: {reconstructions.requires_grad}')
             rec_loss = torch.abs(inputs.contiguous() - reconstructions.contiguous())
             if self.perceptual_weight > 0:
                 p_loss = self.perceptual_loss(inputs.contiguous(), reconstructions.contiguous())
@@ -83,6 +87,8 @@ class LPIPSWithDiscriminator(nn.Module):
             kl_loss = posteriors.kl()
             kl_loss = torch.sum(kl_loss) / kl_loss.shape[0]
         else:
+            print(f'inputs.requires_grad: {inputs.requires_grad}')
+            print(f'reconstructions.requires_grad: {reconstructions.requires_grad}')
             rec_loss = torch.abs(inputs.contiguous() - reconstructions.contiguous())
             if self.perceptual_weight > 0:
                 p_loss = self.perceptual_loss(inputs.contiguous(), reconstructions.contiguous())
@@ -181,4 +187,3 @@ class LPIPSWithDiscriminator(nn.Module):
                    "{}/logits_fake".format(split): logits_fake.detach().mean()
                    }
             return d_loss, log
-

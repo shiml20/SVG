@@ -32,7 +32,7 @@ def get_config(ckpt_path):
 # -----------------------------
 USE_LOCAL_VAE = False   # True: 用本地 VA_VAE, False: 用 HuggingFace AutoencoderKL
 image_size = 256
-ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0000-Dense-XL/checkpoints/3000000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0000-Dense-XL/checkpoints/2000000.pt"
 
 exp_name, config = get_config(ckpt_path)
 step = ckpt_path.split('/')[-1].split('.')[0]
@@ -75,40 +75,62 @@ else:
 seed = 0
 torch.manual_seed(seed)
 num_steps = 50
-cfg_scale = 4
-class_labels = [279] * 1
-mode = "euler"
+cfg_scale = 3
 
-diffusion = RectifiedFlow(model)
+c2 = [14, 17, 20, 270]
+for class_labels in c2:
 
-n = len(class_labels)
-y = torch.tensor(class_labels, device=device)
-y_null = torch.tensor([1000] * n, device=device)
+    class_labels = [class_labels]
+    mode = "euler"
 
-# 两个 latent 噪声
-z1 = torch.randn(n, latent_channels, latent_size, latent_size, device=device)
-z2 = torch.randn(n, latent_channels, latent_size, latent_size, device=device)
+    diffusion = RectifiedFlow(model)
 
-ratios = torch.linspace(0, 1, 10)  # 插值
+    n = len(class_labels)
+    y = torch.tensor(class_labels, device=device)
+    y_null = torch.tensor([1000] * n, device=device)
 
-decoded_list = []
+    # 两个 latent 噪声
+    z1 = torch.randn(n, latent_channels, latent_size, latent_size, device=device)
+    z2 = torch.randn(n, latent_channels, latent_size, latent_size, device=device)
 
+    ratios = torch.linspace(0, 1, 10)  # 插值
 
+    decoded_list = []
+    with torch.no_grad():
+        for r in ratios:
+            z = (r * z1 + (1 - r) * z2) / torch.sqrt(r ** 2 + (1 - r) ** 2)
+            # z = (r * z1 + (1 - r) * z2)
+            samples = diffusion.sample(z, y, y_null, sample_steps=num_steps, cfg=cfg_scale, mode=mode)
+            
+            # Decode
+            latent = samples[-1] / vae_scale_factor
+            decoded = vae.decode(latent).sample
+            decoded_list.append(decoded)
 
-with torch.no_grad():
-    for r in ratios:
-        z = (r * z1 + (1 - r) * z2) / torch.sqrt(r ** 2 + (1 - r) ** 2)
-        samples = diffusion.sample(z, y, y_null, sample_steps=num_steps, cfg=cfg_scale, mode=mode)
-        
-        # Decode
-        latent = samples[-1] / vae_scale_factor
-        decoded = vae.decode(latent).sample
-        decoded_list.append(decoded)
+    # 拼接结果
+    decoded_all = torch.cat(decoded_list, dim=0)
+    grid = make_grid(decoded_all, nrow=len(ratios), normalize=True, value_range=(-1,1))
 
-# 拼接结果
-decoded_all = torch.cat(decoded_list, dim=0)
-grid = make_grid(decoded_all, nrow=len(ratios), normalize=True, value_range=(-1,1))
+    save_path = f"nonlinear_vae_interp_{exp_name}_{step}_sample{num_steps}_{mode}_cfg{cfg_scale}_class{class_labels[0]}.png"
+    save_image(grid, save_path)
+    # display(Image.open(save_path))
 
-save_path = f"vae_interp_{exp_name}_{step}_sample{num_steps}_{mode}_cfg{cfg_scale}.png"
-save_image(grid, save_path)
-display(Image.open(save_path))
+    decoded_list = []
+    with torch.no_grad():
+        for r in ratios:
+            # z = (r * z1 + (1 - r) * z2) / torch.sqrt(r ** 2 + (1 - r) ** 2)
+            z = (r * z1 + (1 - r) * z2)
+            samples = diffusion.sample(z, y, y_null, sample_steps=num_steps, cfg=cfg_scale, mode=mode)
+            
+            # Decode
+            latent = samples[-1] / vae_scale_factor
+            decoded = vae.decode(latent).sample
+            decoded_list.append(decoded)
+
+    # 拼接结果
+    decoded_all = torch.cat(decoded_list, dim=0)
+    grid = make_grid(decoded_all, nrow=len(ratios), normalize=True, value_range=(-1,1))
+
+    save_path = f"linear_vae_interp_{exp_name}_{step}_sample{num_steps}_{mode}_cfg{cfg_scale}_class{class_labels[0]}.png"
+    save_image(grid, save_path)
+    # display(Image.open(save_path))

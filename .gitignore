@@ -27,6 +27,8 @@ dist/
 **/*.pb        
 **/*.pth
 hidden_states_vae/*.pt
+hidden_states_vae/*.pt
+exps/**/*.pt
 
 
 # 所有子目录中的媒体文件（递归匹配）

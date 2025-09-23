@@ -1,0 +1,66 @@
+ckpt_path: /ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/vavae/logs/f16d32_ldm_dinov3_vitsp_plus_mask01_norm/checkpoints/epoch=000040.ckpt # used for testing only, add your ckpt path if you want to test the model
+# init_weight: /home/whl/workspace/dinov3/LightningDiT/vavae/logs/f16d32_ldm_dinov3/checkpoints/last-v1.ckpt # if you want to finetune va-vae on your own dataset, add your weight_init path
+
+## 纠正了图片的输入范围-1,1
+
+model:
+  base_learning_rate: 1.0e-04
+  target: ldm.models.dino_decoder.DinoDecoder
+  params:
+    monitor: val/rec_loss
+    embed_dim: 32
+    lossconfig:
+      target: ldm.modules.losses.LPIPSWithDiscriminatorDecoder
+      params:
+        disc_start: 5001
+        disc_weight: 0.5
+    ddconfig:
+      double_z: true
+      z_channels: 392
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+      - 1
+      - 1
+      - 2
+      - 2
+      - 4
+      num_res_blocks: 2
+      attn_resolutions:
+      - 16
+      dropout: 0.0
+    dinoconfig:
+      dinov3_location: /ytech_m2v3_hdd/yuanziyang/sml/dinov3
+      model_name: dinov3_vits16plus
+      weights: /ytech_m2v3_hdd/yuanziyang/sml/FVG/dinov3/dinov3_vits16plus_pretrain_lvd1689m-4057cbaa.pth
+    extra_vit_config:
+      output_dim: 8
+      # mask_ratio: -1
+      mask_ratio: -1
+      use_outnorm: true
+
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 64 # batch size per GPU
+    wrap: true
+    train:
+      target: ldm.data.imagenet.ImageNetTrain
+      params:
+        data_root: /m2v_intern/public_datasets/ImageNet-1k/
+    validation:
+      target: ldm.data.imagenet.ImageNetValidation
+      params:
+        data_root: /m2v_intern/public_datasets/ImageNet-1k/
+
+lightning:
+  trainer:
+    devices: 8 # number of GPUs, modify it according to your settings
+    num_nodes: 1 # number of nodes, modify it according to your settings
+    strategy: ddp_find_unused_parameters_true
+    accelerator: gpu
+    max_epochs: 1000
+    precision: 32

@@ -91,8 +91,10 @@ vae = VA_VAE("/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/vavae/con
 seed = 0 #@param {type:"number"}
 torch.manual_seed(seed)
 num_sampling_steps = 10 #@param {type:"slider", min:0, max:1000, step:1}
-cfg_scale = 8 #@param {type:"slider", min:1, max:10, step:0.1}
+cfg_scale = 4 #@param {type:"slider", min:1, max:10, step:0.1}
 class_labels = 207, 360, 387, 974, 88, 979, 417, 279 #@param {type:"raw"}
+# class_labels = 207, 360, 387, 974, 88, 979, 417, 279 #@param {type:"raw"}
+class_labels = [279] * 20
 samples_per_row = 4 #@param {type:"number"}
 
 # Create diffusion object:

@@ -19,7 +19,7 @@ import logging
 import os
 
 from diffusion import create_diffusion
-from diffusion.rectified_flow import RectifiedFlow
+from diffusion.rectified_flow_ori import RectifiedFlow
 from diffusers.models import AutoencoderKL
 from download import find_model
 
@@ -160,6 +160,16 @@ def main(config):
     ckpt_every = config.basic.ckpt_every
     start_time = time()
 
+
+
+
+    dinov3_sp_stats = torch.load("dinov3_sp_stats.pt")
+    dinov3_sp_mean = dinov3_sp_stats["dinov3_sp_mean"].to(device)[:,:,:encoder_config.model.params.ddconfig.z_channels]
+    dinov3_sp_std = dinov3_sp_stats["dinov3_sp_std"].to(device)[:,:,:encoder_config.model.params.ddconfig.z_channels]
+
+
+
+
     logger.info(f"Training for {config.basic.epochs} epochs...")
     for epoch in range(config.basic.epochs):
         sampler.set_epoch(epoch)
@@ -173,18 +183,23 @@ def main(config):
             # import ipdb; ipdb.set_trace()
 
             if not use_latent:
-                # import ipdb; ipdb.set_trace()
                 with torch.no_grad():
                     # x = vae.encode(x).latent_dist.sample().mul_(0.18215)
                     # x = vae.encode(x).latent_dist.sample()
+                    
                     x = dinov3.encode(x)
+                    # import ipdb; ipdb.set_trace()
                     # import ipdb; ipdb.set_trace()
                     B, D, H, W = x.shape
                     x = x.view(B, D, H*W).contiguous().permute(0, 2, 1)
                     # x = dinov3(x)[1]["x_norm_patchtokens"]
 
+            if config.basic.feature_norm:
+                # x = (x - 0.0176) / 0.3856 
+                x = (x - dinov3_sp_mean) / dinov3_sp_std
+
             if config.basic.rf:
-                loss_dict = diffusion.forward(x, y, config.basic.discrete)
+                loss_dict = diffusion.forward(x, y, config.basic.shift)
             else:
                 # if 'same_t_per_batch' not in config.basic:
                     # config.basic.same_t_per_batch = False 

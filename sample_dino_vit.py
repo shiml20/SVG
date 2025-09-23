@@ -12,10 +12,11 @@ from PIL import Image
 from IPython.display import display
 from omegaconf import OmegaConf
 
-from diffusion.rectified_flow_ori import RectifiedFlow
+from diffusion.rectified_flow_ori_ablation_guidance import RectifiedFlow
 from utils import instantiate_from_config
 from download import find_model
 from ldm.modules.diffusionmodules.model import Decoder
+from ldm.models.dino_decoder import DinoDecoder
 
 torch.set_grad_enabled(False)
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -36,8 +37,13 @@ ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0139-E0004_Dense_XL_Flow_Di
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0136-E0000_Dense_XL_Flow_Dinov3_vitsp_BS256-GPU8/checkpoints/0500000.pt"
 # ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0152-E0012_LightingDiT_XL_Flow_Dinov3_vitsp_BS256_cache_qknorm-GPU8/checkpoints/0050000.pt"
 # ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0152-E0012_LightingDiT_XL_Flow_Dinov3_vitsp_BS256_cache_qknorm-GPU8/checkpoints/0100000.pt"
-ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0158-E0013_Dense_XL_Flow_Dinov3_vitsp_resNorm_BS256_cache_qknormF-GPU8/checkpoints/0200000.pt"
-ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0153-Ablation-E0013_Dense_XL_Flow_Dinov3_vitsp_resNonorm_BS256_cache_qknorm-GPU8/checkpoints/0500000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0183-E0021_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift1_featureNorm-GPU8/checkpoints/0500000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0182-E0020_XL_Flow_Dinov3sp_BS256_qknorm_shift1_featureNorm-GPU8/checkpoints/0500000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0180-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm-GPU8/checkpoints/0500000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0188-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load900K-GPU8/checkpoints/1100000.pt"
+# ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0193-E0024_B_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift1_featureNorm_repa-GPU8/checkpoints/0050000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0195-G0000_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load1600K_512-GPU8/checkpoints/0500000.pt"
+
 
 
 exp_name, config = get_config(ckpt_path)
@@ -53,47 +59,6 @@ model = instantiate_from_config(config.model)
 state_dict = find_model(ckpt_path)
 model.load_state_dict(state_dict, strict=False)
 model = model.to(device).eval()
-
-# Decoder 配置
-encoder_type = "vitsp16"
-config_dict = {
-    "vitb16": {
-        "z_channels": 768,
-        "weight_path": "/ytech_m2v3_hdd/yuanziyang/sml/FVG/model_vitb16.pt",
-    },
-    "vitsp16": {
-        "z_channels": 384,
-        "weight_path": "/ytech_m2v3_hdd/yuanziyang/sml/Feature-Visual-Generation/vavae/logs/f16d32_ldm_dinov3_vitsp/checkpoints/epoch=000029.ckpt",
-    },
-}
-
-z_channels = config_dict[encoder_type]["z_channels"]
-
-ddconfig = {
-    "double_z": True,
-    "z_channels": z_channels,
-    "resolution": 256,
-    "in_channels": 3,
-    "out_ch": 3,
-    "ch": 128,
-    "ch_mult": [1, 1, 2, 2, 4],
-    "num_res_blocks": 2,
-    "attn_resolutions": [16],
-    "dropout": 0.0,
-}
-
-def load_decoder(weight_path):
-    decoder = Decoder(**ddconfig).to(device)
-    state = torch.load(weight_path, map_location=device)["state_dict"]
-    rename_dict = {k[8:]: v for k, v in state.items() if "decoder" in k}
-    decoder.load_state_dict(rename_dict, strict=False)
-    decoder.eval()
-    return decoder
-
-decoder = load_decoder(config_dict[encoder_type]["weight_path"])
-
-
-from ldm.models.dino_decoder import DinoDecoder
 # from omegaconf import OmegaConf
 
 encoder_config = OmegaConf.load(config.basic.encoder_config)
@@ -107,6 +72,7 @@ dinov3 = DinoDecoder(
     extra_vit_config=encoder_config.model.params.extra_vit_config,
 ).cuda().eval()
 
+z_channels = encoder_config.model.params.ddconfig.z_channels
 
 # %% -------------------------
 # 3. 采样
@@ -114,33 +80,52 @@ dinov3 = DinoDecoder(
 seed = 0
 torch.manual_seed(seed)
 num_steps = 250
+num_steps = 50
+# cfg_scale = 1.25
 cfg_scale = 4
-class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
-# class_labels = [207] * 8
+class_labels = [130, 270, 284, 688, 250, 146, 980, 484, 207, 360, 387, 974, 88, 979, 417, 279]
+# class_labels = [270, ]
+# class_labels = [279] * 20
+# class_labels = [207] * 20
 samples_per_row = 4
 
 diffusion = RectifiedFlow(model)
 
 n = len(class_labels)
-z = torch.randn(n, 256, 392, device=device)
+image_size = 256 
+image_size = 512
+# z = torch.randn(n, 256, z_channels, device=device)
+z = torch.randn(n, (image_size // 16) ** 2, z_channels, device=device)
 # z = torch.randn(n, 256, 384, device=device)
 # z1 = torch.load("z1.pt")
 # z2 = torch.load("z2.pt")
 
+dinov3_sp_stats = torch.load("dinov3_sp_stats.pt")
+dinov3_sp_mean = dinov3_sp_stats["dinov3_sp_mean"].to(device)[:,:,:z_channels]
+dinov3_sp_std = dinov3_sp_stats["dinov3_sp_std"].to(device)[:,:,:z_channels]
 
 ratio = 0
-timestep_shift = 0.3
+timestep_shift = 0.15
 # timestep_shift = 1.0
 # z = ratio * z1 + (1 - ratio) * z2
+# cfg_mode="cfg_star-1"
+cfg_mode="constant"
+# cfg_mode="s^2"
 
 y = torch.tensor(class_labels, device=device)
 y_null = torch.tensor([1000] * n, device=device)
 mode = "euler"
-samples = diffusion.sample(z, y, y_null, sample_steps=num_steps, cfg=cfg_scale, mode=mode, timestep_shift=timestep_shift)
+samples = diffusion.sample(z, y, y_null, sample_steps=num_steps, cfg=cfg_scale, mode=mode, timestep_shift=timestep_shift,
+                            cfg_mode=cfg_mode)[-1]
+
+# import ipdb; ipdb.set_trace()
+if config.basic.get("feature_norm", False):
+    samples = samples * dinov3_sp_std + dinov3_sp_mean
 
 # [B, T, D] -> [B, D, 16, 16]
-B, T, D = samples[-1].shape
-samples_latent = samples[-1].permute(0, 2, 1).reshape(B, D, 16, 16)
+B, T, D = samples.shape
+samples_latent = samples.permute(0, 2, 1).reshape(B, D, image_size // 16, image_size // 16)
+# samples_latent = samples.permute(0, 2, 1).reshape(B, D, 32, 32)
 
 # %% -------------------------
 # 4. 解码完整图像
@@ -149,41 +134,9 @@ with torch.no_grad():
     decoded_full = dinov3.decode(samples_latent)
     # decoded_full = decoder(samples_latent)
 
-save_path = f"sample_{exp_name}_{step}_sample{num_steps}_{mode}_cfg{cfg_scale}_shift{timestep_shift}.png"
+decoded_full = torch.clamp(decoded_full, -1, 1)  # 确保在指定范围内
+# import ipdb; ipdb.set_trace()
+
+save_path = f"{cfg_mode}_sample_{exp_name}_{step}_sample{num_steps}_{mode}_cfg{cfg_scale}_shift{timestep_shift}_{image_size}.png"
 save_image(decoded_full, save_path, nrow=samples_per_row, normalize=True, value_range=(-1, 1))
 display(Image.open(save_path))
-
-# %% -------------------------
-# 5. 单 token 可视化
-# ----------------------------
-# def decode_single_tokens(latent, decoder, out_dir="token_decodes"):
-#     B, D, H, W = latent.shape
-#     N = H * W
-#     os.makedirs(out_dir, exist_ok=True)
-
-#     # 批量构造 masked latent
-#     masked_latents = torch.zeros(N * B, D, H, W, device=device)
-#     for i in range(H):
-#         for j in range(W):
-#             idx = i * W + j
-#             masked_latents[idx*B:(idx+1)*B, :, i, j] = latent[:, :, i, j]
-
-#     with torch.no_grad():
-#         decoded_tokens = decoder(masked_latents)
-
-#     # 保存单独 token 图像
-#     for idx in range(N):
-#         for b in range(B):
-#             save_image(
-#                 decoded_tokens[idx*B + b],
-#                 os.path.join(out_dir, f"b{b}_token_{idx//W:02d}_{idx%W:02d}.png"),
-#                 normalize=True, value_range=(-1, 1)
-#             )
-
-#     # 拼接成一个网格方便对比
-#     grid = make_grid(decoded_tokens, nrow=W, normalize=True, value_range=(-1, 1))
-#     save_image(grid, os.path.join(out_dir, "all_tokens_grid.png"))
-#     return grid
-
-# grid_img = decode_single_tokens(samples_latent, decoder)
-# display(Image.open("token_decodes/all_tokens_grid.png"))

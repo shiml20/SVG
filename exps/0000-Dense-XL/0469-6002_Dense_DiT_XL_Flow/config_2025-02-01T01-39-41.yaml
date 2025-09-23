@@ -1,0 +1,42 @@
+basic:
+  exp_name: 6002_Dense_DiT_XL_Flow
+  results_dir: exps
+  data_path: /pub_datasets/ILSVRC/Data/CLS-LOC/train
+  global_seed: 1234
+  epochs: 1000
+  log_every: 100
+  ckpt_every: 50000
+  rf: true
+  accum_iter: 1
+  clip_grad_norm: null
+  image_size: 256
+  global_batch_size: 256
+  num_workers: 16
+  timestep_start: 0
+  timestep_end: 1000
+  vae_path: stabilityai/sd-vae-ft-mse
+  dataset_config:
+    target: dataset.imagene1K_latent_mse_256.LatentDataset
+    params:
+      latent_dir: /m2v_intern/yuanziyang/data/train
+      class_to_idx: class_to_idx.json
+model:
+  ckpt: null
+  target: models.models_DiT.DiT
+  params:
+    input_size: 32
+    num_classes: 1000
+    patch_size: 2
+    depth: 28
+    hidden_size: 1152
+    num_heads: 16
+    mlp_ratio: 4
+optim:
+  base_learning_rate: 0.0001
+  weight_decay: 0
+  betas:
+  - 0.9
+  - 0.999
+lr_sheduler:
+  warmup: null
+  train_epoch: null
