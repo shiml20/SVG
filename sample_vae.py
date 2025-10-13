@@ -40,7 +40,7 @@ def get_config(ckpt_path):
 
 
 # ckpt_path = "/ytech_m2v2_hdd/sml/DiffMoE_research_local/exps/7146-8001_RaceAll_S_AdaLN/checkpoints/0150000.pt"
-ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0000-Dense-XL/checkpoints/0500000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0000-SiT-XL/checkpoints/0100000.pt"
 # ckpt_path = "/m2v_intern/shiminglei/DiffMoE_research_local/exps/0010-1011_Dense_L_Flow256_MoBA_blockSize16_interleave_flash/checkpoints/0250000.pt"
 # ckpt_path = "/m2v_intern/shiminglei/D/iffMoE_research_local/exps/0011-1010_Dense_L_Flow256/checkpoints/0250000.pt"
 

@@ -28,7 +28,7 @@ def get_fid(folder_path):
 # folder_path = '/m2v_intern/shiminglei/DiT_MoE_Dynamic/sml_samples/SOTA_DiffMoE-L-E8'
 folder_path = '/ytech_m2v3_hdd/yuanziyang/sml/DiffMoE_research_local/sml_samples'
 folder_path = '/ytech_m2v2_hdd/sml/DiffMoE_backup/sml_samples/SOTA_3000K'
-folder_path = '/ytech_m2v3_hdd/yuanziyang/sml/FVG/sml_samples/shift'
+folder_path = '/ytech_m2v3_hdd/yuanziyang/sml/FVG/sml_samples/'
 # folder_path = '/ytech_m2v3_hdd/yuanziyang/sml/FVG/sml_samples/cfg'
 get_fid(folder_path)
 

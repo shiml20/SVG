@@ -22,12 +22,13 @@ def find_model(model_name, is_train=False):
         load_time = end_time - start_time
         print(f"Model loading time: {load_time:.2f} seconds")
         
-        if "ema" in checkpoint and not is_train:  # supports checkpoints from train.py
+        if "ema" in checkpoint:  # supports checkpoints from train.py
             checkpoint = checkpoint["ema"] 
             print("load ema ckpt")
         elif ("model" in checkpoint) and is_train: 
             checkpoint = checkpoint["model"]
             print("load non-ema ckpt")
+
         return checkpoint
 
 

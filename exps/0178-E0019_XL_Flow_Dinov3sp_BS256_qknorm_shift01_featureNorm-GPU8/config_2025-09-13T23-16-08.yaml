@@ -24,6 +24,8 @@ basic:
     target: dataset.dataset_mar_cache.CachedFolder
     params:
       root: /ytech_m2v3_hdd/yuanziyang/sml/imagenet_dino_normal_vitsp
+  encoder_config: /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/f16d32_ldm_dinov3_vitsp.yaml
+
 model:
   ckpt: null
   target: models.models_DiT_dino_v3.DiT

@@ -163,7 +163,7 @@ def main(config):
 
 
 
-    dinov3_sp_stats = torch.load("dinov3_sp_stats.pt")
+    dinov3_sp_stats = torch.load("/ytech_m2v3_hdd/yuanziyang/sml/FVG/dinov3_sp_stats.pt")
     dinov3_sp_mean = dinov3_sp_stats["dinov3_sp_mean"].to(device)[:,:,:encoder_config.model.params.ddconfig.z_channels]
     dinov3_sp_std = dinov3_sp_stats["dinov3_sp_std"].to(device)[:,:,:encoder_config.model.params.ddconfig.z_channels]
 
@@ -264,10 +264,10 @@ def main(config):
             if global_step % (ckpt_every*accum_iter) == 0:
                 if rank == 0:
                     checkpoint = {
-                        "model": model.module.state_dict(),
+                        # "model": model.module.state_dict(),
                         "ema": ema.state_dict(),
-                        "opt": opt.state_dict(),
-                        "args": args
+                        # "opt": opt.state_dict(),
+                        # "args": args
                     }
                     checkpoint_path = f"{checkpoint_dir}/{train_steps:07d}.pt"
                     torch.save(checkpoint, checkpoint_path)

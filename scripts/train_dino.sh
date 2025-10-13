@@ -267,4 +267,35 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun \
     --nproc_per_node=8 \
     --master_port=12326 \
     train_dinov3.py \
-    --config /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/E0024_B_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift01_featureNorm.yaml
+    --config /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load4000K.yaml
+
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun \
+    --nnodes=1 \
+    --nproc_per_node=8 \
+    --master_port=12326 \
+    train_dinov3.py \
+    --config /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/E0028_XXL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift01_featureNorm.yaml
+
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun \
+    --nnodes=1 \
+    --nproc_per_node=8 \
+    --master_port=12326 \
+    train_dinov3.py \
+    --config /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/E0028_XXXL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift01_featureNorm.yaml
+
+
+
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun \
+    --nnodes=1 \
+    --nproc_per_node=8 \
+    --master_port=12326 \
+    train_dinov3_shpere.py \
+    --config /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/E0030_B_Flow_Dinov3sp_BS256_qknorm_shift01_shpere.yaml
+
+
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun \
+    --nnodes=1 \
+    --nproc_per_node=8 \
+    --master_port=12326 \
+    train_dinov3.py \
+    --config /ytech_m2v3_hdd/yuanziyang/sml/FVG/config/E0031_LightingDiT_XL_Flow_Dinov3_vitsp_BS256_cache_qknorm.yaml

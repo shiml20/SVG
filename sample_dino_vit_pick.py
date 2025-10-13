@@ -44,7 +44,7 @@ ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0136-E0000_Dense_XL_Flow_Di
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0180-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm-GPU8/checkpoints/0100000.pt"
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0182-E0020_XL_Flow_Dinov3sp_BS256_qknorm_shift1_featureNorm-GPU8/checkpoints/0150000.pt"
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0180-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm-GPU8/checkpoints/0600000.pt"
-ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0188-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load900K-GPU8/checkpoints/1450000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0188-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load900K-GPU8/checkpoints/1850000.pt"
 
 exp_name, config = get_config(ckpt_path)
 step = ckpt_path.split('/')[-1].split('.')[0]
@@ -78,7 +78,7 @@ z_channels = encoder_config.model.params.ddconfig.z_channels
 num_steps = 50
 cfg_scale = 4
 timestep_shift = 0.15
-samples_per_class = 60   # 每类要多少个样本
+samples_per_class = 10   # 每类要多少个样本
 seeds = [0, 1, 233, 1000]
 
 out_dir = f"samples_{exp_name}_{step}"
@@ -91,6 +91,9 @@ dinov3_sp_mean = dinov3_sp_stats["dinov3_sp_mean"].to(device)[:, :, :z_channels]
 dinov3_sp_std = dinov3_sp_stats["dinov3_sp_std"].to(device)[:, :, :z_channels]
 
 c2 = [33,88,89,207,270,250,279,291,387,388,928,933,972,973,975,980]
+c2 = [668, 562, 207, 360, 387, 974, 88, 979, 417, 279]
+c2 = [263, 324, 326, 397, 393]
+
 # c2 = [1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 24, 30, 33, 37, 39, 40, 47, 48, 50, 51, 63, 64, 69, 71, 74, 76, 78, 81, 84, 88, 89, 90, 96, 97, 99, 100, 101, 105, 107, 108, 112, 115, 117, 118, 120, 121, 122, 124, 125, 134, 139, 148, 151, 153, 155, 156, 157, 158, 160, 162, 165, 167, 174, 175, 177, 178, 179, 184, 185, 186, 187, 188, 194, 195, 205, 207, 208, 215, 219, 222, 223, 228, 230, 232, 234, 235, 240, 244, 247, 248, 250, 253, 258, 259, 263, 264, 266, 269, 270, 272, 277, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 291, 292, 294, 296, 299, 301, 306, 307, 308, 310, 311, 313, 315, 316, 317, 319, 321, 322, 323, 324, 325, 326, 327, 330, 335, 338, 346, 348, 349, 355, 356, 358, 359, 360, 366, 367, 368, 371, 373, 378, 387, 388, 393, 402, 403, 406, 407, 414, 417, 425, 437, 438, 441, 442, 449, 451, 453, 455, 460, 465, 474, 475, 483, 492, 493, 496, 538, 551, 553, 562, 567, 572, 588, 591, 600, 605, 607, 608, 610, 629, 632, 635, 637, 643, 644, 654, 658, 664, 681, 695, 698, 712, 717, 719, 721, 738, 742, 782, 796, 798, 803, 804, 805, 809, 824, 827, 829, 831, 832, 846, 850, 851, 852, 854, 857, 894, 906, 907, 908, 923, 927, 928, 930, 931, 933, 934, 936, 937, 938, 940, 941, 943, 945, 946, 948, 949, 951, 952, 953, 955, 957, 958, 961, 962, 963, 968, 971, 972, 973, 974, 975, 976, 977, 978, 984, 985, 990, 991, 992, 997, 998]
 
 for seed in seeds:

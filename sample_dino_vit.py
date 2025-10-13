@@ -42,7 +42,7 @@ ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0182-E0020_XL_Flow_Dinov3sp
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0180-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm-GPU8/checkpoints/0500000.pt"
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0188-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load900K-GPU8/checkpoints/1100000.pt"
 # ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0193-E0024_B_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift1_featureNorm_repa-GPU8/checkpoints/0050000.pt"
-ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0195-G0000_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load1600K_512-GPU8/checkpoints/0500000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0196-E0024_B_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm-GPU8/checkpoints/0100000.pt"
 
 
 
@@ -93,7 +93,7 @@ diffusion = RectifiedFlow(model)
 
 n = len(class_labels)
 image_size = 256 
-image_size = 512
+# image_size = 512
 # z = torch.randn(n, 256, z_channels, device=device)
 z = torch.randn(n, (image_size // 16) ** 2, z_channels, device=device)
 # z = torch.randn(n, 256, 384, device=device)

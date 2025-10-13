@@ -32,6 +32,7 @@ def get_config(ckpt_path):
     return exp_name, config
 
 ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0160-E0011_Dense_XL_Flow_Dinov3_vitsp_BS256_cache_qknorm_load500K-GPU8/checkpoints/1100000.pt"
+ckpt_path = "/ytech_m2v3_hdd/yuanziyang/sml/FVG/exps/0206-E0031_LightingDiT_XL_Flow_Dinov3_vitsp_BS256_cache_qknorm-GPU8/checkpoints/0050000.pt"
 
 
 exp_name, config = get_config(ckpt_path)
@@ -91,14 +92,11 @@ decoder = load_decoder(config_dict[encoder_type]["weight_path"])
 # ----------------------------
 seed = 0
 torch.manual_seed(seed)
-num_steps = 10
+num_steps = 2
 cfg_scale = 4
 class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
 class_labels = [130, 270, 284, 688, 250, 146, 980, 484, 207, 360, 387, 974, 88, 979, 417, 279]
 
-# class_labels = 798, 714, 443, 302, 418, 916, 499, 641 #@param {type:"raw"}
-# class_labels = [207] * 8
-# class_labels = [279] * 20
 samples_per_row = 4
 
 diffusion = RectifiedFlow(model)
@@ -106,9 +104,6 @@ diffusion = RectifiedFlow(model)
 n = len(class_labels)
 z1 = torch.randn(n, 256, z_channels, device=device)
 z2 = torch.randn(n, 256, z_channels, device=device)
-# z1 = torch.load("z1.pt")
-# z2 = torch.load("z2.pt")
-
 
 
 dinov3_sp_stats = torch.load("dinov3_sp_stats.pt")
