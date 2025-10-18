@@ -1,6 +1,6 @@
 # **SVG: Latent Diffusion Model Without Variational Autoencoder**
 
-<sub>Official PyTorch Implementation</sub>
+## Official PyTorch Implementation
 
 ---
 
