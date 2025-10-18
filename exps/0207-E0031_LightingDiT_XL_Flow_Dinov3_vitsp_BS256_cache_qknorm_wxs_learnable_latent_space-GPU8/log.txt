@@ -1,7 +1,0 @@
-[[34m2025-10-12 16:14:58[0m] Experiment directory created at exps/0207-E0031_LightingDiT_XL_Flow_Dinov3_vitsp_BS256_cache_qknorm_wxs_learnable_latent_space-GPU8
-[[34m2025-10-12 16:14:58[0m] Set up tensorboard SummaryWriter
-[[34m2025-10-12 16:16:10[0m] DiT Parameters: 676,072,128
-[[34m2025-10-12 16:16:27[0m] train with rectified flow
-[[34m2025-10-12 16:16:27[0m] GPU NUM : 8
-[[34m2025-10-12 16:16:27[0m] GPU NUM : 8
-[[34m2025-10-12 16:16:27[0m] GPU NUM : 8

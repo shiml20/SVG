@@ -1,0 +1,18 @@
+[[34m2025-10-17 20:11:13[0m] Experiment directory created at exps/0007-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load4000K-GPU8
+[[34m2025-10-17 20:11:13[0m] Set up tensorboard SummaryWriter
+[[34m2025-10-17 20:11:24[0m] Model Parameters: 676,437,904
+[[34m2025-10-17 20:11:29[0m] Training with Rectified Flow
+[[34m2025-10-17 20:11:42[0m] Dataset contains 1,281,167 images (/m2v_intern/public_datasets/ImageNet-1k/data/train_images)
+[[34m2025-10-17 20:11:47[0m] using base=100 for rope new
+[[34m2025-10-17 20:11:47[0m] using min_period=None for rope new
+[[34m2025-10-17 20:11:47[0m] using max_period=None for rope new
+[[34m2025-10-17 20:11:47[0m] using normalize_coords=separate for rope new
+[[34m2025-10-17 20:11:47[0m] using shift_coords=None for rope new
+[[34m2025-10-17 20:11:47[0m] using rescale_coords=2 for rope new
+[[34m2025-10-17 20:11:47[0m] using jitter_coords=None for rope new
+[[34m2025-10-17 20:11:47[0m] using dtype=fp32 for rope new
+[[34m2025-10-17 20:11:47[0m] using swiglu layer as FFN
+[[34m2025-10-17 20:11:47[0m] Training for 1000 epochs...
+[[34m2025-10-17 20:11:47[0m] Starting epoch 0...
+[[34m2025-10-17 20:12:23[0m] [Step 100] loss: 1.6783 mse: 1.6783 LR=0.000100, Speed=2.80 it/s
+[[34m2025-10-17 20:12:55[0m] [Step 200] loss: 1.0582 mse: 1.0582 LR=0.000100, Speed=3.17 it/s

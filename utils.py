@@ -1,3 +1,7 @@
+
+import os
+import logging
+import time
 import copy
 import torch
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -15,13 +19,32 @@ from copy import deepcopy
 from glob import glob
 from time import time
 
-import logging
-import os
-
 from torch.utils.tensorboard import SummaryWriter
 import importlib
 import datetime
 from omegaconf import OmegaConf
+
+
+def find_model(model_name, is_train=False):
+
+    start_time = time.time()
+
+    checkpoint = torch.load(model_name, map_location=lambda storage, loc: storage, mmap=True, weights_only=False)
+    end_time = time.time()
+    load_time = end_time - start_time
+    print(f"Model loading time: {load_time:.2f} seconds")
+    
+    if "ema" in checkpoint:  # supports checkpoints from train.py
+        checkpoint = checkpoint["ema"] 
+        print("load ema ckpt")
+    elif ("model" in checkpoint) and is_train: 
+        checkpoint = checkpoint["model"]
+        print("load non-ema ckpt")
+
+        return checkpoint
+
+
+
 
 @torch.no_grad()
 def update_ema(ema_model, model, decay=0.9999):
@@ -150,35 +173,29 @@ def setup_exp_dir(rank, args):
 
 
 
-
-
 def setup_data(rank, args, mode="dinov3"):
-    dataset_config = args.get("dataset_config", None)
-    if dataset_config:
-        dataset = instantiate_from_config(dataset_config)
 
+    if mode == "vae":
+        transform = transforms.Compose([
+            transforms.Lambda(lambda pil_image: center_crop_arr(pil_image, args.image_size)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], inplace=True)
+        ])
     else:
-        if mode == "vae":
-            transform = transforms.Compose([
-                transforms.Lambda(lambda pil_image: center_crop_arr(pil_image, args.image_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], inplace=True)
-            ])
-        else:
-            transform = transforms.Compose([
-                # transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),  # DINOv3 预训练用 518
-                transforms.Lambda(lambda pil_image: center_crop_arr(pil_image, args.image_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=(0.485, 0.456, 0.406),  # ImageNet 均值
-                    std=(0.229, 0.224, 0.225),   # ImageNet 方差
-                    inplace=True
-                ),
-            ])
+        transform = transforms.Compose([
+            # transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),  
+            transforms.Lambda(lambda pil_image: center_crop_arr(pil_image, args.image_size)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=(0.485, 0.456, 0.406),  # ImageNet mean
+                std=(0.229, 0.224, 0.225),   # ImageNet std
+                inplace=True
+            ),
+        ])
 
-        dataset = ImageFolder(args.data_path, transform=transform)
+    dataset = ImageFolder(args.data_path, transform=transform)
 
     sampler = DistributedSampler(
         dataset,
