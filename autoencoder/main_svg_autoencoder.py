@@ -445,56 +445,11 @@ class CUDACallback(Callback):
 
 
 if __name__ == "__main__":
-    # custom parser to specify config files, train, test and debug mode,
-    # postfix, resume.
-    # `--key value` arguments are interpreted as arguments to the trainer.
-    # `nested.key=value` arguments are interpreted as config parameters.
-    # configs are merged from left-to-right followed by command line parameters.
-
-    # model:
-    #   base_learning_rate: float
-    #   target: path to lightning module
-    #   params:
-    #       key: value
-    # data:
-    #   target: main.DataModuleFromConfig
-    #   params:
-    #      batch_size: int
-    #      wrap: bool
-    #      train:
-    #          target: path to train dataset
-    #          params:
-    #              key: value
-    #      validation:
-    #          target: path to validation dataset
-    #          params:
-    #              key: value
-    #      test:
-    #          target: path to test dataset
-    #          params:
-    #              key: value
-    # lightning: (optional, has sane defaults and can be specified on cmdline)
-    #   trainer:
-    #       additional arguments to trainer
-    #   logger:
-    #       logger to instantiate
-    #   modelcheckpoint:
-    #       modelcheckpoint to instantiate
-    #   callbacks:
-    #       callback1:
-    #           target: importpath
-    #           params:
-    #               key: value
-
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
 
-    # add cwd for convenience and to make classes in this file available when
-    # running as `python main.py`
-    # (in particular `main.DataModuleFromConfig`)
     sys.path.append(os.getcwd())
 
     parser = get_parser()
-    # parser = Trainer.add_argparse_args(parser)
 
     opt, unknown = parser.parse_known_args()
     cfg_fname = os.path.split(opt.base[0])[-1]
@@ -674,10 +629,6 @@ if __name__ == "__main__":
     print(callbacks_cfg)
     trainer_kwargs["callbacks"] = [instantiate_from_config(callbacks_cfg[k]) for k in callbacks_cfg]
 
-    # if opt.resume_from_checkpoint:
-    #     trainer_kwargs["resume_from_checkpoint"] = opt.resume_from_checkpoint
-    #     print(f"Resuming from checkpoint: {opt.resume_from_checkpoint}")
-
     trainer = Trainer(**{k: v for k, v in vars(trainer_opt).items() if v is not None}, **trainer_kwargs)
     trainer.logdir = logdir  ###
 
@@ -694,22 +645,13 @@ if __name__ == "__main__":
 
     # configure learning rate
     bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate
-    # if not cpu:
-    #     ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
-    # else:
-    #     ngpu = 1
+
     if 'accumulate_grad_batches' in lightning_config.trainer:
         accumulate_grad_batches = lightning_config.trainer.accumulate_grad_batches
     else:
         accumulate_grad_batches = 1
     print(f"accumulate_grad_batches = {accumulate_grad_batches}")
     lightning_config.trainer.accumulate_grad_batches = accumulate_grad_batches
-    # if opt.scale_lr:
-    #     model.learning_rate = accumulate_grad_batches * ngpu * bs * base_lr
-    #     print(
-    #         "Setting learning rate to {:.2e} = {} (accumulate_grad_batches) * {} (num_gpus) * {} (batchsize) * {:.2e} (base_lr)".format(
-    #             model.learning_rate, accumulate_grad_batches, ngpu, bs, base_lr))
-    # else:
     model.learning_rate = base_lr
     print("++++ NOT USING LR SCALING ++++")
     print(f"Setting learning rate to {model.learning_rate:.2e}")
@@ -747,22 +689,4 @@ if __name__ == "__main__":
             print("Summoning checkpoint.")
             melk()
             raise
-    # if not opt.no_test and not trainer.interrupted:
-    #     trainer.test(model, data)
-    # except Exception:
-    #     if opt.debug and trainer.global_rank == 0:
-    #         try:
-    #             import pudb as debugger
-    #         except ImportError:
-    #             import pdb as debugger
-    #         debugger.post_mortem()
-    #     raise
-    # finally:
-    #     # move newly created debug project to debug_runs
-    #     if opt.debug and not opt.resume and trainer.global_rank == 0:
-    #         dst, name = os.path.split(logdir)
-    #         dst = os.path.join(dst, "debug_runs", name)
-    #         os.makedirs(os.path.split(dst)[0], exist_ok=True)
-    #         os.rename(logdir, dst)
-    #     if trainer.global_rank == 0:
-    #         print(trainer.profiler.summary())
+
