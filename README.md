@@ -64,28 +64,40 @@ Follow the official DINOv3 repository instructions to download pre-trained check
 
 ## 🚀 Quick Start
 
-### 1. Configure Paths
+### 1. Configure Paths  
+Before running the pipeline, update the placeholder paths in the following configuration files to match your local file/directory structure.
 
-**Autoencoder Config** (`autoencoder/configs/example_svg_autoencoder_vitsp.yaml`): (you should change)
+
+#### 1.1 Autoencoder Config  
+File path: `autoencoder/configs/example_svg_autoencoder_vitsp.yaml`  
+
+Modify the paths under `dinoconfig` (for DINOv3 dependencies) and `train`/`validation` (for dataset) as shown below:  
 ```yaml
 dinoconfig:
-  dinov3_location: /path/to/dinov3
-  model_name: dinov3_vits16plus
-  weights: /path/to/dinov3_vits16plus_pretrain.pth
+  dinov3_location: /path/to/your/dinov3  # Path to the directory storing the DINOv3 codebase
+  model_name: dinov3_vits16plus          # Fixed DINOv3 model variant (no need to change)
+  weights: /path/to/your/dinov3_vits16plus_pretrain.pth  # Path to the pre-trained DINOv3 weights file
+...
 train:
   params:
-    data_root: /path/to/ImageNet-1k/
+    data_root: /path/to/your/ImageNet-1k/  # Root directory of the ImageNet-1k dataset (for training)
 validation:
   params:
-    data_root: /path/to/ImageNet-1k/
+    data_root: /path/to/your/ImageNet-1k/  # Root directory of the ImageNet-1k dataset (for validation)
 ```
 
-**Diffusion Config** (`configs/example_SVG_XL.yaml`): (you should change)
+
+#### 1.2 Diffusion Config  
+File path: `configs/example_SVG_XL.yaml`  
+
+Update the `data_path` (for training data) and `encoder_config` (path to the Autoencoder config above) as follows:  
 ```yaml
 basic:
-  data_path: /path/to/ImageNet-1k/train_images
-  encoder_config: ../autoencoder/svg/configs/example_svg_autoencoder_vitsp.yaml
-```
+  data_path: /path/to/your/ImageNet-1k/train_images  # Path to the "train_images" subfolder in ImageNet-1k
+  encoder_config: ../autoencoder/svg/configs/example_svg_autoencoder_vitsp.yaml  # Relative/absolute path to your edited Autoencoder config
+```  
+
+> Note: Ensure the encoder_config path is valid (use an absolute path if the relative path ../ does not match your project’s folder hierarchy). Additionally, the ckpt parameter must be set to the full path of your trained decoder checkpoint file.
 
 ### 2. Train SVG Autoencoder
 ```bash
