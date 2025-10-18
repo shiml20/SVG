@@ -1,5 +1,0 @@
-[[34m2025-10-17 19:55:54[0m] Experiment directory created at exps/0002-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load4000K-GPU8
-[[34m2025-10-17 19:55:54[0m] Set up tensorboard SummaryWriter
-[[34m2025-10-17 19:56:09[0m] Model Parameters: 676,437,904
-[[34m2025-10-17 19:56:15[0m] Training with Rectified Flow
-[[34m2025-10-17 19:57:23[0m] Dataset contains 1,281,167 images (/m2v_intern/public_datasets/ImageNet-1k/data/train_images)

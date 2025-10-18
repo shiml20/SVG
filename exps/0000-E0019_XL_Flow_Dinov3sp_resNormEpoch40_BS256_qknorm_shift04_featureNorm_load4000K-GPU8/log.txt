@@ -1,2 +1,0 @@
-[[34m2025-10-17 18:40:34[0m] Experiment directory created at exps/0000-E0019_XL_Flow_Dinov3sp_resNormEpoch40_BS256_qknorm_shift04_featureNorm_load4000K-GPU8
-[[34m2025-10-17 18:40:34[0m] Set up tensorboard SummaryWriter
