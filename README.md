@@ -158,6 +158,7 @@ If you use this work in your research, please cite our paper:
 This implementation builds upon several excellent open-source projects:
 
 * [**dinov3**](https://github.com/facebookresearch/dinov3) - Dinov3 official architecture
+* [**SigLIP2**](https://huggingface.co/blog/siglip2) - SigLIP2 official architecture
 * [**MAE**](https://github.com/facebookresearch/mae) - MAE baseline architecture
 * [**SiT**](https://github.com/willisma/sit) - Diffusion framework and training codebase
 * [**VAVAE**](https://github.com/hustvl/LightningDiT/) - PyTorch convolutional decoder implementation
