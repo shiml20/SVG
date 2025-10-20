@@ -26,10 +26,10 @@ We introduce **SVG**, a novel latent diffusion model without variational autoenc
 2. **Latent Diffusion Transformer** - Performs diffusion modeling directly on SVG latent space.
 
 **Repository Features:**
-- ✅ PyTorch implementation of **SVG Autoencoder**
-- ✅ PyTorch implementation of **Latent Diffusion Transformer**
-- ✅ End-to-end **training** and **sampling** scripts
-- ✅ Multi-GPU distributed training support
+- ✅ PyTorch implementation of **SVG Autoencoder**.
+- ✅ PyTorch implementation of **Latent Diffusion Transformer**.
+- ✅ End-to-end **training** and **sampling** scripts.
+- ✅ Multi-GPU distributed training support.
 
 ---
 
