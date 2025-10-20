@@ -157,9 +157,9 @@ If you use this work in your research, please cite our paper:
 
 This implementation builds upon several excellent open-source projects:
 
-* [**MAE**](https://github.com/facebookresearch/mae) - ViT decoder architecture
+* [**MAE**](https://github.com/facebookresearch/mae) - MAE baseline architecture
 * [**SiT**](https://github.com/willisma/sit) - Diffusion framework and training codebase
-* [**VAVAE**](https://github.com/hustvl/LightningDiT/) - PyTorch Lightning-based DiT implementation
+* [**VAVAE**](https://github.com/hustvl/LightningDiT/) - PyTorch convolutional decoder implementation
 
 ---
 
