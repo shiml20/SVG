@@ -1,4 +1,4 @@
-# **SVG: Latent Diffusion Model Without Variational Autoencoder**
+# **SVG: Latent Diffusion Model without Variational Autoencoder**
 
 <sub>Official PyTorch Implementation</sub>
 
@@ -9,8 +9,8 @@
 
 ### [<a href="https://arxiv.org/abs/2510.15301" target="_blank">arXiv</a>] | [<a href="https://howlin-wang.github.io/svg/" target="_blank">Project Page</a>]
 
-***[Minglei Shi<sup>1*</sup>](https://github.com/shiml20), [Haolin Wang<sup>1*</sup>](https://howlin-wang.github.io), [Wenzhao Zheng<sup>1†</sup>](https://wzzheng.net), [Ziyang Yuan<sup>2</sup>](https://scholar.google.ru/citations?user=fWxWEzsAAAAJ&hl=en), [Xiaoshi Wu<sup>2</sup>](https://scholar.google.com/citations?user=cnOAMbUAAAAJ&hl=en), [Xintao Wang<sup>2</sup>](https://xinntao.github.io), [Pengfei Wan<sup>2</sup>](https://scholar.google.com/citations?user=P6MraaYAAAAJ&hl=en), [Jie Zhou<sup>1</sup>](https://www.imem.tsinghua.edu.cn/info/1330/2128.htm), [Jiwen Lu<sup>1</sup>](https://www.au.tsinghua.edu.cn/info/1078/3156.htm)***  
-<small>(*equal contribution, listed alphabetically; †project lead)</small>  
+***[Minglei Shi<sup>1*</sup>](https://github.com/shiml20), [Haolin Wang<sup>1*</sup>](https://howlin-wang.github.io), [Wenzhao Zheng<sup>1†</sup>](https://wzzheng.net), [Ziyang Yuan<sup>2</sup>](https://scholar.google.ru/citations?user=fWxWEzsAAAAJ&hl=en), [Xiaoshi Wu<sup>2</sup>](https://scholar.google.com/citations?user=cnOAMbUAAAAJ&hl=en), [Xintao Wang<sup>2</sup>](https://xinntao.github.io), [Pengfei Wan<sup>2</sup>](https://scholar.google.com/citations?user=P6MraaYAAAAJ&hl=en), [Jie Zhou<sup>1</sup>](https://scholar.google.com/citations?user=6a79aPwAAAAJ&hl=en), [Jiwen Lu<sup>1</sup>](https://ivg.au.tsinghua.edu.cn/Jiwen_Lu/)***  
+<small>(*equal contribution, listed in alphabetical order; †project lead)</small>  
 <sup>1</sup>Department of Automation, Tsinghua University  <sup>2</sup>Kling Team, Kuaishou Technology
 
 </div>
@@ -19,10 +19,10 @@
 
 ## 🧠 Overview
 
-We introduce **SVG** a novel latent diffusion model without variational autoencoders, which unleashes Self-supervised representations for Visual Generation.
+We introduce **SVG**, a novel latent diffusion model without variational autoencoders, which unleashes Self-supervised representations for Visual Generation.
 
 **Key Components:**
-1. **SVG Autoencoder** - Uses a frozen representation encoder with a residual block to compensate the information loss and a learned convolutional decoder to transfer the SVG latent space to pixel space.
+1. **SVG Autoencoder** - Uses a frozen representation encoder with a residual branch to compensate the information loss and a learned convolutional decoder to transfer the SVG latent space to pixel space.
 2. **Latent Diffusion Transformer** - Performs diffusion modeling directly on SVG latent space.
 
 **Repository Features:**
