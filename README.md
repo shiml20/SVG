@@ -141,11 +141,14 @@ Adjust `--nproc_per_node` based on your available GPUs. The example uses 8 GPUs.
 If you use this work in your research, please cite our paper:
 
 ```bibtex
-@article{xxxxx,
-  title={Latent Diffusion Model Without Variational Autoencoder},
-  author={Shi, Minglei and Wang, Haolin and Zheng, Wenzhao and Yuan, Ziyang and Wu, Xiaoshi and Wang, Xintao and Wan, Pengfei and Zhou, Jie and Lu, Jiwen},
-  journal={arXiv preprint arXiv:xxxx.xxxxx},
-  year={2025}
+@misc{shi2025latentdiffusionmodelvariational,
+      title={Latent Diffusion Model without Variational Autoencoder}, 
+      author={Minglei Shi and Haolin Wang and Wenzhao Zheng and Ziyang Yuan and Xiaoshi Wu and Xintao Wang and Pengfei Wan and Jie Zhou and Jiwen Lu},
+      year={2025},
+      eprint={2510.15301},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2510.15301}, 
 }
 ```
 ---
