@@ -7,7 +7,7 @@
 <div align="center">
 <img src="figs/logo.svg" width="35%"/>
 
-### [<a href="https://huggingface.co/papers/xxx" target="_blank">arXiv</a>] | [<a href="https://howlin-wang.github.io/svg/" target="_blank">Project Page</a>]
+### [<a href="https://arxiv.org/abs/2510.15301" target="_blank">arXiv</a>] | [<a href="https://howlin-wang.github.io/svg/" target="_blank">Project Page</a>]
 
 ***[Minglei Shi<sup>1*</sup>](https://github.com/shiml20), [Haolin Wang<sup>1*</sup>](https://howlin-wang.github.io), [Wenzhao Zheng<sup>1†</sup>](https://wzzheng.net), [Ziyang Yuan<sup>2</sup>](https://scholar.google.ru/citations?user=fWxWEzsAAAAJ&hl=en), [Xiaoshi Wu<sup>2</sup>](https://scholar.google.com/citations?user=cnOAMbUAAAAJ&hl=en), [Xintao Wang<sup>2</sup>](https://xinntao.github.io), [Pengfei Wan<sup>2</sup>](https://scholar.google.com/citations?user=P6MraaYAAAAJ&hl=en), [Jie Zhou<sup>1</sup>](https://www.imem.tsinghua.edu.cn/info/1330/2128.htm), [Jiwen Lu<sup>1</sup>](https://www.au.tsinghua.edu.cn/info/1078/3156.htm)***  
 <small>(*equal contribution, listed alphabetically; †project lead)</small>  
