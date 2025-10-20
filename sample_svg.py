@@ -74,7 +74,7 @@ seed = 0
 torch.manual_seed(seed)
 
 num_steps = 25
-cfg_scale = 12
+cfg_scale = 4
 image_size = 256
 samples_per_row = 4
 
@@ -94,7 +94,7 @@ sp_std = stats["dinov3_sp_std"].to(device)[:, :, :z_channels]
 
 # CFG and timestep settings
 timestep_shift = 0.15
-cfg_mode = "early-0.1"
+cfg_mode = "constant"
 mode = "euler"
 
 y = torch.tensor(class_labels, device=device)
