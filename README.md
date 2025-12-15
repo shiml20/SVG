@@ -7,7 +7,34 @@
 <div align="center">
 <img src="figs/logo.svg" width="35%"/>
 
-### [<a href="https://arxiv.org/abs/2510.15301" target="_blank">arXiv</a>] | [<a href="https://howlin-wang.github.io/svg/" target="_blank">Project Page</a>] ｜ [<a href="https://huggingface.co/howlin/SVG/" target="_blank">Model Weights</a>]
+
+<a href="https://arxiv.org/abs/2510.15301" target="_blank">
+    <img alt="arXiv" src="https://img.shields.io/badge/arXiv-SVG-red?logo=arxiv" height="25" />
+</a>
+<a href="https://github.com/shiml20/SVG" target="_blank">
+    <img alt="Github" src="https://img.shields.io/badge/⚒️_Github-Code-white.svg" height="25" />
+</a>
+<a href="https://huggingface.co/howlin/SVG" target="_blank">
+    <img alt="HF Model: SVG" src="https://img.shields.io/badge/%F0%9F%A4%97%20_Model-SVG-ffc107?color=ffc107&logoColor=white" height="25" />
+</a>
+<br>
+<a href="https://arxiv.org/abs/2512.11749" target="_blank">
+    <img alt="arXiv" src="https://img.shields.io/badge/arXiv-SVG--T2I-red?logo=arxiv" height="25" />
+</a>
+<a href="https://github.com/KlingTeam/SVG-T2I" target="_blank">
+    <img alt="Github" src="https://img.shields.io/badge/⚒️_Github-Code-white.svg" height="25" />
+</a>
+<a href="https://huggingface.co/KlingTeam/SVG-T2I" target="_blank">
+    <img alt="HF Model: SVG-T2I" src="https://img.shields.io/badge/%F0%9F%A4%97%20_Model-SVG--T2I-ffc107?color=ffc107&logoColor=white" height="25" />
+</a>
+<a href="https://cloud.tsinghua.edu.cn/f/7f6ee030f273427cba4b/" target="_blank">
+    <img alt="PDF" src="https://img.shields.io/badge/📄_PDF-Paper-red.svg" height="25" />
+</a>
+<a href="LICENSE" target="_blank">
+    <img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" height="25" />
+</a>
+<br>
+
 
 ***[Minglei Shi<sup>1*</sup>](https://github.com/shiml20), [Haolin Wang<sup>1*</sup>](https://howlin-wang.github.io), [Wenzhao Zheng<sup>1†</sup>](https://wzzheng.net), [Ziyang Yuan<sup>2</sup>](https://scholar.google.ru/citations?user=fWxWEzsAAAAJ&hl=en), [Xiaoshi Wu<sup>2</sup>](https://scholar.google.com/citations?user=cnOAMbUAAAAJ&hl=en), [Xintao Wang<sup>2</sup>](https://xinntao.github.io), [Pengfei Wan<sup>2</sup>](https://scholar.google.com/citations?user=P6MraaYAAAAJ&hl=en), [Jie Zhou<sup>1</sup>](https://scholar.google.com/citations?user=6a79aPwAAAAJ&hl=en), [Jiwen Lu<sup>1</sup>](https://ivg.au.tsinghua.edu.cn/Jiwen_Lu/)***  
 <small>(*equal contribution, listed in alphabetical order; †project lead)</small>  
@@ -18,9 +45,16 @@
 ---
 ## 🔥 News
 
-- [2025.11.20] Released pretrained weights for both the SVG Autoencoder and the SVG-XL diffusion backbone.
+- **[2025.12.13]** 🚀📢🎉 We are thrilled to announce the **official release of SVG-T2I**!  
+  The project is now **fully open-sourced**, featuring **complete training and inference code** as well as **pre-trained model weights**.  
+  🔧 SVG-T2I Code: <a href="https://github.com/KlingTeam/SVG-T2I" target="_blank">GitHub</a> &nbsp;|&nbsp;
+  🤗 SVG-T2I Models: <a href="https://huggingface.co/KlingTeam/SVG-T2I" target="_blank">Hugging Face</a>
 
-- [2025.09.12] Released the paper, along with full training and inference code.
+- **[2025.11.20]** 🧠⚙️📦 We release **pre-trained weights** for both the **SVG Autoencoder** and the **SVG-XL diffusion backbone**, providing strong foundations for high-quality text-to-image generation.
+
+- **[2025.09.12]** 📄✨🔓 The paper is officially released, together with **full training and inference pipelines**, enabling easy adoption and further research.
+
+
 
 
 ## 🧠 Overview
