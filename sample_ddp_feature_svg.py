@@ -168,7 +168,7 @@ def sample_loop(model, config, encoder_config, inception, diffusion, dinov3, din
                 z, y, y_null, sample_steps=args.num_sampling_steps,
                 cfg=args.cfg_scale, progress=False, mode=args.tag,
                 timestep_shift=args.shift, cfg_mode=args.cfg_mode
-            )[-1]
+            )
             if config.basic.get("feature_norm", False):
                 samples = samples * dinov3_sp_std + dinov3_sp_mean
             B, T, D = samples.shape
